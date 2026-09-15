@@ -2,13 +2,39 @@
 
 An ON/OFF switch that routes Codex (the CLI **and** the Codex desktop app)
 through **OpenRouter** — any of its ~430 models, DeepSeek V4.1 Flash included —
-and restores your original OpenAI config when you flip it back. No proxy, no
-app restart for the flip itself.
+and restores your original OpenAI config when you flip it back. No proxy, and
+the flip itself needs no app restart.
 
 Ships as two binaries:
 
+- **`codex-switch-bar`** — a small floating toolbar with the switch, a model dropdown and key settings
 - **`codex-switch`** — the CLI (status / on / off / toggle / model / models / key / catalog / undo)
-- **`codex-switch-bar`** — a floating toolbar (egui) with the switch, a model dropdown and key settings
+
+## Download and run (Windows)
+
+1. Grab `codex-switch-windows-x64.zip` from the
+   [latest release](https://github.com/Druidia-Bot/codex-switch/releases/latest)
+   and extract it anywhere. (The x64 build also runs on Windows on ARM.)
+2. Right-click `install-start-menu.ps1` → **Run with PowerShell**. It copies the
+   two exes to `%USERPROFILE%\.local\bin`, puts that on your PATH, and adds a
+   **Codex Switch** entry to the Start Menu. If PowerShell refuses to run scripts:
+   `powershell -ExecutionPolicy Bypass -File .\install-start-menu.ps1`
+3. Press the Windows key, type **Codex Switch**, open it.
+4. Click **⚙** and paste your OpenRouter API key (from
+   [openrouter.ai/keys](https://openrouter.ai/keys)). It is verified and stored
+   encrypted. If you already run DeepAstra, its key is imported automatically.
+5. **Restart the Codex app once.** The first launch of the bar registers a model
+   catalog with Codex; the app only reads that list when it starts. After this
+   one restart, flips are instant.
+6. Flip the switch **ON**, pick a model from the dropdown, and start a new
+   thread in Codex (app or CLI). Flip **OFF** to go back to OpenAI exactly as
+   you had it.
+
+The exes are unsigned, so Windows SmartScreen may show "Windows protected your
+PC" the first time: click **More info → Run anyway**, or build from source.
+
+macOS/Linux: build from source (see below); the same CLI and bar work, with the
+key read from `OPENROUTER_API_KEY`.
 
 ## How it works
 

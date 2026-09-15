@@ -1,15 +1,46 @@
-# Creates (or refreshes) a per-user Start Menu shortcut "Codex Switch" that
-# launches codex-switch-bar.exe from ~/.local/bin. Re-run after rebuilding.
+# codex-switch installer (Windows).
+#
+# Run this from the extracted release folder (or from a source checkout after
+# `cargo build --release`). It copies codex-switch.exe and codex-switch-bar.exe
+# into ~\.local\bin, adds that folder to your user PATH if needed, and creates a
+# Start Menu entry called "Codex Switch". Safe to re-run after an update.
+#
+#   Right-click -> "Run with PowerShell", or:
+#   powershell -ExecutionPolicy Bypass -File .\install-start-menu.ps1
 $ErrorActionPreference = 'Stop'
-$exe = Join-Path $HOME '.local\bin\codex-switch-bar.exe'
-if (-not (Test-Path -LiteralPath $exe)) { throw "codex-switch-bar.exe not found at $exe - build and copy it first (see README)." }
+
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$candidates = @($here, (Join-Path $here '..\target\release'), (Join-Path $here 'target\release'))
+$source = $candidates | Where-Object { Test-Path (Join-Path $_ 'codex-switch-bar.exe') } | Select-Object -First 1
+if (-not $source) { throw "codex-switch-bar.exe not found next to this script. Extract the release zip fully, or build with cargo first." }
+
+$bin = Join-Path $HOME '.local\bin'
+New-Item -ItemType Directory -Force $bin | Out-Null
+foreach ($name in 'codex-switch.exe', 'codex-switch-bar.exe') {
+    $src = Join-Path $source $name
+    if (Test-Path $src) {
+        Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Copy-Item $src (Join-Path $bin $name) -Force
+        Unblock-File (Join-Path $bin $name) -ErrorAction SilentlyContinue
+        Write-Output "installed $name -> $bin"
+    }
+}
+
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+if (($userPath -split ';') -notcontains $bin) {
+    [Environment]::SetEnvironmentVariable('PATH', ($userPath.TrimEnd(';') + ';' + $bin), 'User')
+    Write-Output "added $bin to your user PATH (new terminals will see 'codex-switch')"
+}
+
+$exe = Join-Path $bin 'codex-switch-bar.exe'
 $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 $lnk = Join-Path $programs 'Codex Switch.lnk'
 $shell = New-Object -ComObject WScript.Shell
 $s = $shell.CreateShortcut($lnk)
 $s.TargetPath = $exe
-$s.WorkingDirectory = Split-Path -Parent $exe
+$s.WorkingDirectory = $bin
 $s.Description = 'Switch Codex between OpenAI and OpenRouter'
 $s.IconLocation = "$exe,0"
 $s.Save()
-Write-Output "Start Menu shortcut written: $lnk"
+Write-Output "Start Menu entry created: Codex Switch"
+Write-Output "Done. Press the Windows key and type 'Codex Switch' to open it."
