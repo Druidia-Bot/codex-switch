@@ -1,123 +1,181 @@
-# codex-switch
+# Codex Switch
 
-An ON/OFF switch that routes Codex (the CLI **and** the Codex desktop app)
-through **OpenRouter** — any of its ~430 models, DeepSeek V4.1 Flash included —
-and restores your original OpenAI config when you flip it back. No proxy, and
-the flip itself needs no app restart.
+**Use any AI model inside Codex, with one click.**
 
-Ships as two binaries:
+Codex is great, but it's locked to OpenAI's models. Codex Switch adds an
+ON/OFF switch to your desktop. Flip it **ON** and Codex (the desktop app and
+the command line) runs on any of the ~430 models on
+[OpenRouter](https://openrouter.ai): DeepSeek, Claude, Gemini, GLM, Qwen, Llama
+and the rest. Flip it **OFF** and you're back on OpenAI, set up exactly as
+before.
 
-- **`codex-switch-bar`** — a small floating toolbar with the switch, a model dropdown and key settings
-- **`codex-switch`** — the CLI (status / on / off / toggle / model / models / key / catalog / undo)
+- **One click to switch.** No config files to edit and no terminal needed.
+- **Pick any model from a dropdown.** Search it by name. The models that
+  developers use most for coding are listed first.
+- **The next thread uses the new model.** Start a new thread and it's on the
+  model you picked. You don't restart anything.
+- **It works in the Codex app's own model picker too.** The OpenRouter models
+  show up there next to OpenAI's.
+- **It puts your setup back exactly.** When you turn it off, your original
+  OpenAI settings come back. A backup is saved before every change, and
+  **Undo** restores it.
+- **Your API key stays on your computer.** It's stored encrypted on your PC and
+  only goes to OpenRouter. While the switch is ON, it's also written into
+  Codex's settings file so Codex can use it.
+- **Nothing extra runs in the background.** No proxy or server. It changes
+  Codex's settings and gets out of the way.
 
-## Download and run (Windows)
+---
 
-1. Grab `codex-switch-windows-x64.zip` from the
-   [latest release](https://github.com/Druidia-Bot/codex-switch/releases/latest)
-   and extract it anywhere. (The x64 build also runs on Windows on ARM.)
-2. Right-click `install-start-menu.ps1` → **Run with PowerShell**. It copies the
-   two exes to `%USERPROFILE%\.local\bin`, puts that on your PATH, and adds a
-   **Codex Switch** entry to the Start Menu. If PowerShell refuses to run scripts:
-   `powershell -ExecutionPolicy Bypass -File .\install-start-menu.ps1`
-3. Press the Windows key, type **Codex Switch**, open it.
-4. Click **⚙** and paste your OpenRouter API key (from
-   [openrouter.ai/keys](https://openrouter.ai/keys)). It is verified and stored
-   encrypted. If you already run DeepAstra, its key is imported automatically.
-5. **Restart the Codex app once.** The first launch of the bar registers a model
-   catalog with Codex; the app only reads that list when it starts. After this
-   one restart, flips are instant.
-6. Flip the switch **ON**, pick a model from the dropdown, and start a new
-   thread in Codex (app or CLI). Flip **OFF** to go back to OpenAI exactly as
-   you had it.
+## Get started in 5 minutes (Windows)
 
-The exes are unsigned, so Windows SmartScreen may show "Windows protected your
-PC" the first time: click **More info → Run anyway**, or build from source.
+You don't need to know how to code. You need:
 
-macOS/Linux: build from source (see below); the same CLI and bar work, with the
-key read from `OPENROUTER_API_KEY`.
+- **Codex** installed (the desktop app, the command line, or both)
+- An **OpenRouter account** with a little credit. Sign up at
+  [openrouter.ai](https://openrouter.ai) and add a few dollars under *Credits*.
 
-## How it works
+### 1. Download
 
-Everything is verified against Codex CLI 0.153 and Codex Desktop 26.908:
+Get **`codex-switch-windows-x64.zip`** from the
+[latest release](https://github.com/Druidia-Bot/codex-switch/releases/latest).
+Right-click the zip, choose **Extract All…**, and extract it anywhere, such as
+your Downloads folder.
 
-1. **Codex re-reads `~/.codex/config.toml` every time a thread starts.**
-   Flipping `model_provider` therefore applies to the *next* thread you start in
-   the Codex app or CLI — nothing needs restarting.
-2. **OpenRouter speaks Codex's wire protocol natively.** Codex only supports the
-   Responses API now (`wire_api = "chat"` is rejected), and OpenRouter's
-   `/api/v1/responses` implements it, including tool calls, so a DeepSeek turn that
-   runs shell commands works with a plain provider block. No local proxy.
-3. **The Codex app's model picker comes from a model catalog.** Codex only knows
-   metadata (context window, reasoning levels) for OpenAI models, so codex-switch
-   writes a *combined* catalog — the native OpenAI models copied verbatim from
-   Codex's own cache plus every OpenRouter model, with Codex's real system prompt
-   attached — and registers it via `model_catalog_json`. The app-server caches
-   that list for its lifetime, so the catalog stays registered permanently and the
-   Codex app needs **one restart after the first install** to list the OpenRouter
-   models in its own picker. After that, flips are hot.
-4. **The key rides in config.** While ON, the OpenRouter key is written into the
-   provider block (`experimental_bearer_token`), which the running app picks up
-   immediately; an environment variable would only be seen after a restart. OFF
-   removes the block again. The key is stored DPAPI-encrypted under
-   `~/.codex/codex-switch/`, and an existing DeepAstra key is imported automatically.
+> Works on normal Windows PCs and on Windows on ARM (Surface, Snapdragon laptops).
 
-### What ON writes
+### 2. Install
 
-```toml
-model = "deepseek/deepseek-v4.1-flash"
-model_provider = "openrouter"
-model_catalog_json = "C:/Users/you/.codex/codex-switch/model-catalog.json"
+In the extracted folder, right-click **`install-start-menu.ps1`** and choose
+**Run with PowerShell**. A blue window opens for a moment and closes on its own.
 
-[model_providers.openrouter]
-name = "OpenRouter"
-base_url = "https://openrouter.ai/api/v1"
-wire_api = "responses"
-supports_websockets = false
-experimental_bearer_token = "sk-or-…"   # or env_key = "OPENROUTER_API_KEY" if that is set
+That's the whole install. It adds **Codex Switch** to your Start Menu.
+
+<details>
+<summary>The script didn't run, or the window closed straight away</summary>
+
+Windows sometimes blocks scripts. Open the extracted folder, click the address
+bar, type `powershell`, and press Enter. Then paste this and press Enter:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-start-menu.ps1
 ```
+</details>
 
-Your original `model` / `model_provider` / `service_tier` are snapshotted the
-moment you turn it ON and put back exactly on OFF; the provider block (and key)
-is removed. (`service_tier = "priority"` is OpenAI-only and makes Codex warn on
-every OpenRouter turn, so it is parked while ON.) Only
-the `model_catalog_json` line persists (it is what makes the app list the
-models); `codex-switch uninstall` removes that too. `toml_edit` keeps every
-comment and the rest of the file untouched, and each write is backed up to
-`config.toml.codex-switch.bak` first (`codex-switch undo` restores it).
+### 3. Open it
 
-### Model ordering
+Press the **Windows key**, type **Codex Switch**, and open it. A small card
+appears. Drag it wherever you like, or click 📌 to keep it on top.
 
-The picker (bar, CLI and the catalog the Codex app sees) is ordered:
+> **"Windows protected your PC"?** The app is new and isn't code-signed yet, so
+> Windows SmartScreen doesn't recognise it. Click **More info → Run anyway**.
+> You only have to do this once.
 
-1. **Recent** — models you used through codex-switch, newest first
-2. **Popular for coding** — OpenRouter's live *programming* ranking
-   (`/models?category=programming`), with a curated fallback when offline
-3. **All models** — alphabetical; models without tool calling go last and are
-   hidden from the Codex app's picker (Codex needs tools to be useful)
+### 4. Add your OpenRouter key
 
-Switching ON always uses the last model you had selected.
+1. Go to [openrouter.ai/keys](https://openrouter.ai/keys) and click
+   **Create Key**. Copy the key; it starts with `sk-or-`.
+2. In Codex Switch, click **⚙**, paste the key, and save.
 
-## The floating toolbar
+Codex Switch checks the key with OpenRouter before saving it, so you'll know
+straight away if it was mistyped.
 
-```
-codex-switch-bar
-```
+### 5. Restart Codex, once
 
-A small frameless card, draggable by its title bar. Caption buttons use the
-system Segoe Fluent Icons font: refresh catalog, settings, pin, minimize, close.
+**Close the Codex app completely and open it again.** Codex only reads its
+list of models when it starts, and this restart lets it pick up the new ones.
+You won't need to restart it again.
 
-- **Toggle OFF** → OpenAI, your config restored.
-- **Toggle ON** → OpenRouter with your last model. A dropdown lists the whole
-  catalog with search; a pick is applied to `config.toml` immediately.
-- **⚙** → enter your OpenRouter API key. It is verified against OpenRouter
-  before being stored.
-- **↻** → re-fetch the OpenRouter catalog and regenerate the combined catalog.
-- The status line shows what Codex is pointed at now and warns when the Codex
-  app was started before the catalog was registered (restart it once).
+### 6. Flip it on
 
-The bar re-reads the config every 1.5 s, so changes made by the CLI show up.
+1. Flip the switch from **OpenAI** to **OpenRouter**.
+2. Pick a model from the dropdown. Type in it to search, e.g. `deepseek` or
+   `claude`.
+3. **Start a new thread** in Codex. It now runs on the model you picked.
 
-## CLI
+To go back to OpenAI, turn the switch **OFF** and start a new thread.
+
+---
+
+## Everyday use
+
+| You want to… | Do this |
+| --- | --- |
+| Use a different model | Pick it from the dropdown, then start a new thread |
+| Go back to OpenAI | Switch **OFF**, then start a new thread |
+| See newly added OpenRouter models | Click **↻** |
+| Change your API key | Click **⚙** |
+| Open it every day | Right-click **Codex Switch** in the Start Menu → **Pin to taskbar** |
+
+Codex Switch remembers the last model you used, so switching ON takes you
+straight back to it. Models you've used recently appear at the top of the
+list.
+
+## Good to know
+
+- **Start a new thread after switching.** A conversation started on OpenAI
+  can't continue on another provider, and the reverse is true too. Threads you
+  already have keep working on the provider they started on.
+- **Pick models that support tools.** Codex runs commands and edits files, so a
+  model has to support "tool calling" to be useful. Models that don't are
+  hidden from the Codex app's picker and listed last in the dropdown.
+- **Watch your costs.** Codex sends the model a lot of context on every turn:
+  its instructions, your files, and any plugins or MCP servers you have set
+  up. That can be hundreds of thousands of tokens per turn, and OpenRouter
+  bills you for every one. Cheap, fast models such as DeepSeek V4.1 Flash cost
+  a few cents a turn. Check prices on the model's OpenRouter page, and watch
+  your usage at [openrouter.ai/activity](https://openrouter.ai/activity).
+- **Small-context models may fail.** For the same reason, models with a small
+  context window (for example 128k tokens) may reject Codex's requests. Models
+  with large windows work best.
+- **Some Codex tools are OpenAI-only.** Web search and image generation only
+  work with OpenAI models.
+- **The OpenRouter models stay in the Codex app's picker when the switch is
+  OFF.** They're labelled "· OpenRouter", but they won't work until you switch
+  ON.
+
+## Troubleshooting
+
+**The OpenRouter models don't appear in the Codex app.**
+Close the Codex app completely and reopen it (step 5). Codex Switch shows a
+warning in its status line when the app needs this restart.
+
+**Codex says the model returned an error or a 402.**
+Your OpenRouter credit has probably run out. Top up at
+[openrouter.ai/credits](https://openrouter.ai/credits).
+
+**Something about my Codex setup looks wrong.**
+Switch **OFF** first. If it's still wrong, open a terminal and run
+`codex-switch undo`. That restores Codex's settings file from the backup taken
+before the last change.
+
+**Updating to a new version.**
+Download the new zip and run `install-start-menu.ps1` again. It closes the
+running app and replaces it for you.
+
+## Uninstall
+
+1. Open a terminal and run `codex-switch uninstall`. This switches OFF and
+   removes everything Codex Switch added to your Codex settings.
+2. Delete `codex-switch.exe` and `codex-switch-bar.exe` from
+   `%USERPROFILE%\.local\bin`.
+3. Delete `Codex Switch.lnk` from
+   `%APPDATA%\Microsoft\Windows\Start Menu\Programs` to remove the Start Menu
+   entry.
+4. Optionally, delete the `%USERPROFILE%\.codex\codex-switch` folder. It holds
+   your saved key and the cached model list.
+
+---
+
+# For developers
+
+Everything below is for people who want the command line, want to build from
+source, or want to know how it works.
+
+## Command line
+
+The installer puts `codex-switch` on your PATH. It does everything the
+toolbar does:
 
 ```bash
 codex-switch                       # status (default)
@@ -136,62 +194,115 @@ codex-switch undo                  # restore config.toml from backup
 codex-switch uninstall             # OFF + remove the catalog registration
 ```
 
-Point it at a different file with `--config /path/to/config.toml`.
+Point it at a different file with `--config /path/to/config.toml`. The toolbar
+re-reads the config every 1.5 s, so changes made from the CLI show up there.
 
-## DeepSeek and other non-OpenAI models — known limits
+## Build from source
 
-- **Don't move an existing thread between providers.** DeepSeek (and other
-  reasoning models) return reasoning items in a format OpenAI rejects, and
-  OpenAI's encrypted reasoning items can't be read by other vendors. Start a
-  new thread after flipping; threads keep working on the provider they began on.
+Requires [Rust](https://rustup.rs) (stable).
+
+```bash
+git clone https://github.com/Druidia-Bot/codex-switch.git
+cd codex-switch
+cargo build --release
+```
+
+This produces two binaries in `target/release/`:
+
+- **`codex-switch-bar`**: the floating toolbar
+- **`codex-switch`**: the CLI
+
+**Windows:** after building, run `.\scripts\install-start-menu.ps1` from the
+repo root. It finds the binaries in `target\release`, copies them to
+`~\.local\bin`, adds that folder to PATH, and creates the Start Menu entry.
+`.\scripts\package.ps1` builds the release zip into `dist\`.
+
+Windows build notes:
+
+- The release is built with the x64 MSVC toolchain
+  (`cargo +stable-x86_64-pc-windows-msvc build --release`), which also runs on
+  Windows on ARM under emulation.
+- If Git for Windows is on your PATH, its `link.exe` can shadow the MSVC
+  linker. Strip it for the build:
+  ```powershell
+  $env:PATH = ($env:PATH -split ';' | Where-Object { $_ -notmatch 'Git\\usr\\bin' }) -join ';'
+  ```
+
+**macOS / Linux:** the same CLI and toolbar build and run there. There's no
+DPAPI, so set the key in the `OPENROUTER_API_KEY` environment variable instead
+of storing it.
+
+## How it works
+
+Verified against Codex CLI 0.153 and Codex Desktop 26.908:
+
+1. **Codex re-reads `~/.codex/config.toml` every time a thread starts.**
+   Flipping `model_provider` therefore applies to the *next* thread in the
+   Codex app or CLI, without a restart.
+2. **OpenRouter speaks Codex's wire protocol natively.** Codex only supports
+   the Responses API (`wire_api = "chat"` is rejected), and OpenRouter's
+   `/api/v1/responses` implements it, tool calls included. A DeepSeek turn that
+   runs shell commands works with a plain provider block, so no local proxy is
+   needed.
+3. **The Codex app's model picker comes from a model catalog.** Codex only has
+   metadata (context window, reasoning levels) for OpenAI models, so
+   codex-switch writes a *combined* catalog: the native OpenAI models, copied
+   verbatim from Codex's own cache, plus every OpenRouter model with Codex's
+   real system prompt attached. It registers the catalog via
+   `model_catalog_json`. The app-server caches that list for its lifetime, so
+   the catalog stays registered permanently and the app needs one restart
+   after the first install.
+4. **The key goes in the config.** While ON, the OpenRouter key is written into
+   the provider block (`experimental_bearer_token`), which the running app
+   picks up immediately; an environment variable would only be seen after a
+   restart. OFF removes the block again. The key is stored DPAPI-encrypted under
+   `~/.codex/codex-switch/`. An existing DeepAstra key is imported
+   automatically.
+
+### What ON writes
+
+```toml
+model = "deepseek/deepseek-v4.1-flash"
+model_provider = "openrouter"
+model_catalog_json = "C:/Users/you/.codex/codex-switch/model-catalog.json"
+
+[model_providers.openrouter]
+name = "OpenRouter"
+base_url = "https://openrouter.ai/api/v1"
+wire_api = "responses"
+supports_websockets = false
+experimental_bearer_token = "sk-or-…"   # or env_key = "OPENROUTER_API_KEY" if that is set
+```
+
+Your original `model` / `model_provider` / `service_tier` are snapshotted the
+moment you turn it ON and put back exactly on OFF, and the provider block (with
+the key) is removed. `service_tier = "priority"` is OpenAI-only and makes Codex
+warn on every OpenRouter turn, so it is parked while ON. Only the
+`model_catalog_json` line persists after OFF; `codex-switch uninstall` removes
+that too. `toml_edit` keeps comments and the rest of the file untouched, and
+every write is backed up to `config.toml.codex-switch.bak` first.
+
+### Model ordering
+
+The picker (toolbar, CLI and the Codex app's catalog) is ordered:
+
+1. **Recent**: models you used through codex-switch, newest first
+2. **Popular for coding**: OpenRouter's live *programming* ranking
+   (`/models?category=programming`), with a curated fallback when offline
+3. **All models**: alphabetical. Models without tool calling go last and are
+   hidden from the Codex app's picker.
+
+### Model metadata
+
 - **Context window** comes from OpenRouter's catalog (DeepSeek V4.1 Flash:
-  1,048,576 tokens, auto-compaction at 80 %). Without the catalog Codex would
+  1,048,576 tokens, auto-compaction at 80 %). Without the catalog, Codex would
   clamp unknown models to its 272k fallback.
 - **Reasoning effort**: models that advertise `reasoning` on OpenRouter get
-  low/medium/high; others get a single level. OpenRouter ignores Codex's
-  reasoning parameters for models that don't support them.
-- Codex's web search and image generation tools are OpenAI-only and are
-  disabled for OpenRouter models.
-- While OFF, the Codex app still lists the OpenRouter models (they are tagged
-  "· OpenRouter"); picking one while OFF fails, because the request goes to
-  OpenAI. Flip ON first.
-
-## Notes from the live verification (2026-09-15)
-
-- `codex exec` through the real config with `model_provider = "openrouter"` and
-  DeepSeek V4.1 Flash completed a shell tool call; Codex recorded the session
-  with `model_provider: openrouter`. OFF left config.toml identical apart from
-  the catalog line (restored keys may move to the end of the root table).
-- A turn in this Codex setup carries roughly 450–560k input tokens (many MCP
-  servers, plugins and skills). That is Codex's normal prompt, not something
-  the switch adds, but it matters on OpenRouter: it costs about $0.10 per
-  uncached DeepSeek turn, and models with a 128k window will fail outright.
-- The Codex desktop app itself was not driven by automation here; the
-  config-re-read and picker-caching behaviour was verified against
-  `codex app-server`, which is the same process the app embeds.
-
-## Build (Windows / this machine)
-
-This box is Windows on ARM, and the installed MSVC Build Tools only include the
-x64 linker, so build with the x86_64 toolchain (the exe runs fine under
-Windows' x64 emulation). Git's `link.exe` shadows the MSVC linker, so strip
-`Git\usr\bin` from PATH for the build:
-
-```powershell
-$env:PATH = ($env:PATH -split ';' | Where-Object { $_ -notmatch 'Git\\usr\\bin' }) -join ';'
-cargo +stable-x86_64-pc-windows-msvc build --release
-Copy-Item target\release\codex-switch.exe, target\release\codex-switch-bar.exe $HOME\.local\bin\
-```
-
-Then add the Start Menu entry (searchable as "Codex Switch"; right-click it to
-pin to Start or the taskbar):
-
-```powershell
-.\scripts\install-start-menu.ps1
-```
-
-On Linux/macOS it's just `cargo build --release`. Key storage falls back to a
-plain file there (set `OPENROUTER_API_KEY` in the environment instead).
+  low/medium/high; others get a single level.
+- **Provider mixing**: reasoning models such as DeepSeek return reasoning
+  items in a format OpenAI rejects, and OpenAI's encrypted reasoning items
+  can't be read by other vendors. That's why threads can't move between
+  providers.
 
 ## Files
 
@@ -205,6 +316,7 @@ plain file there (set `OPENROUTER_API_KEY` in the environment instead).
 | `~/.codex/codex-switch/openrouter.key` | DPAPI-protected key |
 | `~/.codex/codex-switch/native-home/` | shadow Codex home used to refresh the native model list |
 
-The shadow home exists because Codex stops refreshing its own model cache while
-a custom catalog is registered; codex-switch asks Codex for a fresh list there
-(one `model/list` call, no tokens spent) before every catalog regeneration.
+The shadow home exists because Codex stops refreshing its own model cache
+while a custom catalog is registered. Before every catalog regeneration,
+codex-switch asks Codex for a fresh list there (one `model/list` call, which
+spends no tokens).
