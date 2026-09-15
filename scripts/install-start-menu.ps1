@@ -19,8 +19,15 @@ New-Item -ItemType Directory -Force $bin | Out-Null
 foreach ($name in 'codex-switch.exe', 'codex-switch-bar.exe') {
     $src = Join-Path $source $name
     if (Test-Path $src) {
-        Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($name)) -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-        Copy-Item $src (Join-Path $bin $name) -Force
+        # A running bar holds its exe open; stop it and wait for the lock to clear.
+        $proc = [IO.Path]::GetFileNameWithoutExtension($name)
+        Get-Process -Name $proc -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        for ($i = 0; $i -lt 20 -and (Get-Process -Name $proc -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 150 }
+        $copied = $false
+        for ($i = 0; $i -lt 10 -and -not $copied; $i++) {
+            try { Copy-Item $src (Join-Path $bin $name) -Force; $copied = $true } catch { Start-Sleep -Milliseconds 300 }
+        }
+        if (-not $copied) { throw "could not replace $name - close Codex Switch and run this again." }
         Unblock-File (Join-Path $bin $name) -ErrorAction SilentlyContinue
         Write-Output "installed $name -> $bin"
     }
