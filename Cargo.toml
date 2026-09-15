@@ -1,0 +1,32 @@
+[package]
+name = "codex-switch"
+version = "0.2.0"
+edition = "2021"
+description = "Toggle Codex between OpenAI and OpenRouter (hot, no app restart)"
+
+[[bin]]
+name = "codex-switch"
+path = "src/main.rs"
+
+[[bin]]
+name = "codex-switch-bar"
+path = "src/bin/bar.rs"
+
+[dependencies]
+eframe = "0.32"
+anyhow = "1.0"
+clap = { version = "4", features = ["derive"] }
+dialoguer = { version = "0.11", default-features = false, features = ["fuzzy-select"] }
+dirs = "5.0"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml_edit = "0.22"
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
